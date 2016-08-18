@@ -84,7 +84,9 @@ The image can then be run and configured via environment variables.
 Start an Elasticsearch instance, mounting a local configuratione file (see [documentation](https://hub.docker.com/_/elasticsearch/)), and exposing the default port on the host.
 
 ```bash
-docker run -it --name elasticsearch -v "$(pwd)/esconfig/elasticsearch.yml":/usr/share/elasticsearch/config/elasticsearch.yml -p 9200:9200 elasticsearch:2
+cd elasticsearch
+docker build -t o2r-elasticsearch .
+docker run -it --name elasticsearch -v "$(pwd)/elasticsearch.yml":/usr/share/elasticsearch/config/elasticsearch.yml -p 9200:9200 o2r-elasticsearch
 ```
 
 You can then explore the state of Elasticsearch, e.g.

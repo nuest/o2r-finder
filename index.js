@@ -30,6 +30,15 @@ var mimeTree = require('./lib/tree').mimeTree;
 var readTextfileTree = require('./lib/tree').readTextfileTree;
 var cloneDeep = require('clone-deep');
 
+var Mimos = require('mimos');
+var mime = new Mimos();
+
+var elasticsearch = require('elasticsearch');
+var esclient = new elasticsearch.Client({
+  host: c.elasticsearch.location,
+  log: 'trace'
+});
+
 
 // transform functions for node-elasticsearch-sync
 var transformCompendium = function (watcher, compendium, cb) {
@@ -74,6 +83,28 @@ var transformCompendium = function (watcher, compendium, cb) {
   // > as nested documents to have many
   //   > http://grokbase.com/t/gg/elasticsearch/148v29ymaf/how-can-we-index-array-of-attachments
   //   > https://www.elastic.co/guide/en/elasticsearch/reference/current/nested.html
+  //
+  // > https://github.com/elastic/elasticsearch-mapper-attachments/issues/153
+  if(tree) {
+    //compendium.attachments = readTextfileTree(cloneDeep(tree));
+    //delete compendium.texts.path;
+    var fileName = Math.random() < 0.5 ? '/home/daniel/git/o2r/o2r-finder/test/about-1.pdf' : '/home/daniel/git/o2r/o2r-finder/test/about-2.pdf';
+    // convert binary data to base64 encoded string
+    var file = fs.readFileSync(fileName)
+    var base64file = new Buffer(file).toString('base64');
+
+    var attachment = {};
+    attachment._content = base64file;
+    attachment._name = fileName;
+    //attachment._content_type = mime.path(fileName).type;
+    
+    compendium.file = {}
+    compendium.file.content = base64file;
+
+    // FIXME http://localhost/api/v1/search/?q=%22form%20of%20publishing%22
+
+    //compendium.attachments.file = base64file;
+  }
 
   cb(compendium);
 };
@@ -94,7 +125,7 @@ var watchers = [];
 var compendiaWatcher = {
   collectionName: c.mongo.collection.compendia,
   index: c.elasticsearch.index, // elastic search index
-  type: c.elasticsearch.type.compendia, // elastic search type
+  type: c.elasticsearch.type.compendium, // elastic search type
   transformFunction: transformCompendium, // can be null if no transformation is needed to be done
   fetchExistingDocuments: c.sync.fetchExisting.compendia, // this will fetch all existing document in collection and index in elastic search
   priority: 0 // defines order of watcher processing. Watchers with low priorities get processed ahead of those with high priorities
@@ -102,7 +133,7 @@ var compendiaWatcher = {
 var jobsWatcher = {
   collectionName: c.mongo.collection.jobs,
   index: c.elasticsearch.index,
-  type: c.elasticsearch.type.jobs,
+  type: c.elasticsearch.type.job,
   transformFunction: transformJob,
   fetchExistingDocuments: c.sync.fetchExisting.jobs,
   priority: 10
@@ -111,6 +142,13 @@ var jobsWatcher = {
 watchers.push(compendiaWatcher, jobsWatcher);
 
 var init = function () {
+  // post mapping to Elasticsearch
+  esclient.indices.putMapping({
+    index: c.elasticsearch.index,
+    type: c.elasticsearch.type.compendia,
+    body: require('./config/mapping/compendium.json')}
+  );
+
   debug('Initialized finder in version %s.%s.%s', c.version.major, c.version.minor, c.version.bug);
 }
 

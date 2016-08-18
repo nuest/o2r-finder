@@ -1,0 +1,31 @@
+{
+    "compendia": {
+        "properties": {
+            "compendium_id": {
+                "type": "string"
+            },
+            "created": {
+                "type": "date",
+                "format": "strict_date_optional_time||epoch_millis"
+            },
+            "id": {
+                "type": "string"
+            },
+            "user": {
+                "type": "string"
+            },
+            "attachments": {
+                "type": "nested",
+                "include_in_root": true,
+                "properties": {
+                    "file": {
+                        "type": "attachment"
+                    },
+                    "file_name": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

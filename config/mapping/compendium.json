@@ -1,0 +1,37 @@
+{
+    "compendia": {
+        "properties": {
+            "compendium_id": {
+                "type": "string"
+            },
+            "created": {
+                "type": "date",
+                "format": "strict_date_optional_time||epoch_millis"
+            },
+            "id": {
+                "type": "string"
+            },
+            "user": {
+                "type": "string"
+            },
+            "file": {
+                "type": "attachment",
+                "fields": {
+                    "content": {
+                        "index": "yes"
+                    },
+                    "title": {
+                        "store": "yes"
+                    },
+                    "date": {
+                        "store": "yes"
+                    },
+                    "file": {
+                        "term_vector": "with_positions_offsets",
+                        "store": "yes"
+                    }
+                }
+            }
+        }
+    }
+}
